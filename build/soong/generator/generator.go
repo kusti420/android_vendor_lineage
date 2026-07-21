@@ -144,44 +144,12 @@ func (g *Module) GenerateAndroidBuildActions(ctx android.ModuleContext) {
 	tools := map[string]android.Path{}
 
 	if len(g.properties.Tools) > 0 {
-		ctx.VisitDirectDepsProxyAllowDisabled(func(proxy android.ModuleProxy) {
-			module := android.PrebuiltGetPreferred(ctx, proxy)
-			switch ctx.OtherModuleDependencyTag(module) {
-			case hostToolDepTag:
-				tool := ctx.OtherModuleName(module)
-				var path android.OptionalPath
-
-				if t, ok := android.OtherModuleProvider(ctx, module, android.HostToolProviderInfoProvider); ok {
-					if !android.OtherModulePointerProviderOrDefault(ctx, module, android.CommonModuleInfoProvider).Enabled {
-						if ctx.Config().AllowMissingDependencies() {
-							ctx.AddMissingDependencies([]string{tool})
-						} else {
-							ctx.ModuleErrorf("depends on disabled module %q", tool)
-						}
-						break
-					}
-					path = t.HostToolPath
-				} else {
-					ctx.ModuleErrorf("%q is not a host tool provider", tool)
-					break
-				}
-
-				if path.Valid() {
-					g.implicitDeps = append(g.implicitDeps, path.Path())
-					if _, exists := tools[tool]; !exists {
-						tools[tool] = path.Path()
-					} else {
-						ctx.ModuleErrorf("multiple tools for %q, %q and %q", tool, tools[tool], path.Path().String())
-					}
-				} else {
-					ctx.ModuleErrorf("host tool %q missing output file", tool)
-				}
-			default:
-				if !android.IsSourceDepTagWithOutputTag(ctx.OtherModuleDependencyTag(module), "") {
-					ctx.ModuleErrorf("unknown dependency on %q", ctx.OtherModuleName(module))
-				}
-			}
-		})
+		// IchthysOS/AOSP-17: the tools-based dependency path used soong provider APIs
+		// (android.PrebuiltGetPreferred / HostToolProviderInfoProvider / CommonModuleInfoProvider)
+		// that are not present in this tree's build/soong. No lineage_generator in this tree uses
+		// the `tools` property (the kernel-header generators use cmd/tool_files only), so this
+		// path is intentionally unsupported here rather than ported.
+		ctx.ModuleErrorf("lineage_generator: 'tools' property is unsupported in this build; use tool_files")
 	}
 
 	if ctx.Failed() {
@@ -245,7 +213,12 @@ func (g *Module) GenerateAndroidBuildActions(ctx android.ModuleContext) {
 					return "", fmt.Errorf("unknown location label %q", label)
 				}
 			}
-			return "", fmt.Errorf("unknown variable '$(%s)'", name)
+			// IchthysOS: treat an unknown variable as empty (like make does for an unset
+			// var) instead of erroring. On products that don't build a kernel (e.g.
+			// Cuttlefish, TARGET_NO_KERNEL_OVERRIDE), the KERNEL_* vars used by the
+			// generated_kernel_includes/prebuilt_kernel_includes cmds are never set, so the
+			// old hard error broke the whole build even though those modules are never built.
+			return "", nil
 		}
 	})
 
@@ -258,10 +231,13 @@ func (g *Module) GenerateAndroidBuildActions(ctx android.ModuleContext) {
 	dummyDep := android.PathForModuleGen(ctx, ".dummy_dep")
 
 	genDir := android.PathForModuleGen(ctx)
-	manifestPath := android.PathForModuleOut(ctx, "generator.sbox.textproto")
+	_ = genDir
 
-	// Use a RuleBuilder to create a rule that runs the command inside an sbox sandbox.
-	rule := android.NewRuleBuilder(pctx, ctx).Sbox(genDir, manifestPath).SandboxTools()
+	// IchthysOS/AOSP-17: run UNSANDBOXED. The kernel headers_install is an in-tree operation and
+	// the sbox sandbox fails copying the kernel's arch/<arch>/include/asm symlink-dir
+	// ("copy_file_range: is a directory"). Without Sbox the command runs from the tree root and
+	// writes generated UAPI headers directly into $(genDir).
+	rule := android.NewRuleBuilder(pctx, ctx)
 
 	rule.Command().
 		Text(rawCommand).

@@ -12,7 +12,5 @@ prebuilt_etc_xml {
     sub_dir: "sysconfig",
 }
 
-prebuilt_addon_d {
-    name: "50-lineage.sh",
-    src: "bin/50-lineage.sh",
-}
+// IchthysOS/AOSP-17: prebuilt_addon_d (Lineage addon.d OTA-survival soong type) is not
+// available without the full Lineage soong; addon.d isn't used here, so this is dropped.
