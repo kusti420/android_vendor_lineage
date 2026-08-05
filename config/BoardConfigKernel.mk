@@ -117,7 +117,9 @@ endif
 KERNEL_MAKE_FLAGS :=
 
 # Add back threads, ninja cuts this to $(getconf _NPROCESSORS_ONLN)/2
-KERNEL_MAKE_FLAGS += -j$(shell getconf _NPROCESSORS_ONLN)
+# Capped: full-LTO of qcacld-3.0 (wlan.lto.o) needs several GB per ld.lld, and at
+# 24-way it OOM-kills the linker while soong's javac workers are also resident.
+KERNEL_MAKE_FLAGS += -j$(shell n=$$(getconf _NPROCESSORS_ONLN); [ $$n -gt 10 ] && echo 10 || echo $$n)
 
 TOOLS_PATH_OVERRIDE := \
     HIP_PATH=none PERL5LIB=$(BUILD_TOP)/prebuilts/tools-lineage/common/perl-base
