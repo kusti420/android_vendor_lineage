@@ -1,0 +1,7 @@
+# IchthysOS: cp2a drops wificond in favour of the mainline supplicant, but the
+# device's WLAN stack (hardware/qcom-caf/wlan, lineage-24.0) still expects wificond.
+# Keep it until the mainline supplicant path is actually tested on this device.
+name: "RELEASE_DISABLE_WIFICOND"
+value {
+  bool_value: false
+}

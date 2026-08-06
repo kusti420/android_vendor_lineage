@@ -1,0 +1,5 @@
+# IchthysOS: lets vendor/lineage contribute flag values to the cp2a (Android 17 /
+# SDK 37) release config. Inherits bp4a so the module flags Lineage already
+# carries stay in effect; cp2a-specific pins live in flag_values/cp2a/.
+name: "cp2a"
+inherits: "bp4a"

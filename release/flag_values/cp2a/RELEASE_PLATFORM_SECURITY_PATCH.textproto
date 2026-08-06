@@ -1,0 +1,7 @@
+# IchthysOS: keep AOSP's cp2a patch level rather than the 2026-07-01 value
+# inherited from bp4a. IchthysOS does not backport security patches, so the
+# date should reflect the sources actually being built and track upstream QPRs.
+name: "RELEASE_PLATFORM_SECURITY_PATCH"
+value {
+  string_value: "2026-06-05"
+}
