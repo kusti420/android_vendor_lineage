@@ -7,4 +7,9 @@
 
     <string name="default_root_uri" translatable="false">content://com.android.externalstorage.documents/root/primary</string>
 
+    <!-- IchthysOS: ZArchiver is the file manager; DocumentsUI stays only as the system document
+         manager (CREATE_DOCUMENT / OPEN_DOCUMENT_TREE), so keep its "Files" icon out of the
+         launcher. Applied by DocumentsUI's PreBootReceiver, which reads it from this overlay. -->
+    <bool name="is_launcher_enabled">false</bool>
+
 </resources>
