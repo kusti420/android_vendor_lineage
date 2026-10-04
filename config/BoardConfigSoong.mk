@@ -22,15 +22,9 @@ EXPORT_TO_SOONG := \
 $(call add_soong_config_namespace,lineageVarsPlugin)
 $(foreach v,$(EXPORT_TO_SOONG),$(eval $(call add_soong_config_var,lineageVarsPlugin,$(v))))
 
-# Bootanimation
-TARGET_BOOTANIMATION_HALF_RES ?= false
-$(call soong_config_set,lineage_bootanimation,height,$(TARGET_SCREEN_HEIGHT))
-$(call soong_config_set,lineage_bootanimation,width,$(TARGET_SCREEN_WIDTH))
-$(call soong_config_set,lineage_bootanimation,half_res,$(TARGET_BOOTANIMATION_HALF_RES))
-
-ifneq ($(TARGET_BOOTANIMATION),)
-$(call soong_config_set,lineage_bootanimation,prebuilt_file,$(TARGET_BOOTANIMATION))
-endif
+# IchthysOS: no lineage_bootanimation soong config. vendor/lineage/bootanimation is neutralized
+# (the boot animation is a prebuilt zip copied by sm7325-common/common.mk), so nothing read the
+# height/width/half_res values that TARGET_SCREEN_HEIGHT/WIDTH used to feed here.
 
 # Charger
 lineage_charger_density := mdpi
